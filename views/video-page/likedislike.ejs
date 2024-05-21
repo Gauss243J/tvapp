@@ -1,0 +1,58 @@
+<button type="button" class="btn btn-default" onclick="doLike();">
+    <i class="fa fa-thumbs-up"></i>
+
+    <span id="likes">
+        <%= video.likers.length %>
+    </span>
+</button>
+
+<button type="button" class="btn btn-default" onclick="doDislike();">
+    <i class="fa fa-thumbs-down"></i>
+
+    <span id="dislikes">
+        <%= video.dislikers.length %>
+    </span>
+</button>
+
+
+<img src="<%= mainUrl + item.thumbnail %>" class="img-fluid">
+<h3>
+    <a href="<%= mainUrl %>playlist/<%= playlistId + "/" + item.watch %>"> <%= item.title %></a>
+</h3>
+<% console.log(item.thumbnail) %>
+
+
+
+<script type="text/javascript">
+    // Get the video player element
+    const playlist = JSON.parse('<%- JSON.stringify(playlist) %>');
+    // Utilisation de la variable playlist en JavaScript
+    var mainURL = "http://localhost:3000/";
+    const videoPlayer = document.getElementById('videoPlayer');
+    let currentVideoIndex = 0;
+    // Add event listener for the 'ended' event on the video player
+    videoPlayer.addEventListener('ended', function() {
+      // Check if there are more videos in the playlist
+     if (currentVideoIndex >= playlist.length) {
+        currentVideoIndex--;
+        
+      } else if(currentVideoIndex < playlist.length) {
+        // Update the current video index
+        currentVideoIndex++;
+        // Set the source of the next video in the playlist
+        videoPlayer.src = mainURL+playlist[currentVideoIndex].filePath;
+        videoPlayer.type = "video/mp4";
+        videoPlayer.poster=mainURL+playlist[currentVideoIndex].thumbnail;
+      }
+      else{
+        // Handle playlist completion
+        currentVideoIndex = 0;
+        videoPlayer.play();
+        console.log('Playlist completed');
+       
+      }
+    
+    });
+  </script>
+
+

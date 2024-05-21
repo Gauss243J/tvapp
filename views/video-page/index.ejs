@@ -1,0 +1,81 @@
+<%- include ("../includes/header.ejs") %>
+
+<div class="container-fluid pb-0"> 
+    <div class="video-block section-padding">
+            <div class="row">
+                                <div class="col-md-7">   
+                                    <div class="col-lg-8"> 
+                                    <h1 class="mt-4">
+                                        <%= video.title %>
+                                    </h1>
+                                    <p>
+                                        by <%= video.user.name %>
+                                    </p>
+                                    <hr>
+                                    <p>
+                                        Post on 
+                                        <% 
+                                            var createdAt = new Date(video.createdAt);
+                                            var date = createdAt.getDate() + "";
+                                        %>
+                                        <%= date.padStart(2, "0") + " " + months[createdAt.getMonth()] + ", " + createdAt.getFullYear() %>
+                                    </p>
+
+                                    <hr>
+                                    <input type="hidden" id="videoId" value="<%=video._id %>">
+                                    <input type="hidden" id="category" value="<%=video.category %>">
+                            
+                                    <% mainUrl = "http://localhost:3000/" %>
+                                    <video id="videoPlayer" controls style="width: 270px; height: 169px;;"
+                                        poster="<%= mainUrl +video.thumbnail %>"
+                                        src="<%= mainUrl + video.filePath %>">
+                                    </video>
+                           
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-0">
+                                                <i class="fa fa-eye">
+                                                    <%= video.views %> views
+                                                </i>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+                                    <p class="text-center">
+                                        <b>Category :</b>
+                                        <%= video.category %>
+                                    </p>
+                                    <hr>
+                                    <p class="lead">
+                                        <%= video.description %>
+                                    </p>
+
+                                </div>
+                            </div>
+
+
+                                <div class="col-md-5">
+                                    <div class="single-video-right">
+                                        <div class="row">
+                                            <div class="col-md-12" style="padding-left: 0px; padding-right: 0px;">
+                                                <div class="adblock">
+                                                    <%- include ("sidebar") %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
