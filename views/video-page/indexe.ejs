@@ -51,7 +51,7 @@
     <input type="hidden" id="thumbnail" value="<%= video.thumbnail %>">
 
 </div>
-<img class="img-fluid" style="object-fit: cover;" src="<%= video.user.image %>" onerror="this.src ='<%= mainUrl%>' + 'public/img/user_placeholder.jpg'" alt="">
+<img class="img-fluid" style="object-fit: cover;" src="<%= mainUrl + video.user.image %>" onerror="this.src ='<%= mainUrl%>' + 'public/img/user_placeholder.jpg'" alt="">
 <p><a href="channel?c=<%= video.user._id %>"><strong><%= video.user.first_name + " " + video.user.last_name %></strong></a> <span title="" data-placement="top" data-toggle="tooltip" data-original-title="Verified"><i class="fas fa-check-circle text-success"></i></span></p>
 <small>Published on <%
 var createdAt = new Date(video.createdAt);
@@ -80,28 +80,58 @@ var date = createdAt.getDate() + "";
  <script type="text/javascript">
   const socket = io();
     // Get the video player element
-    const playlist = JSON.parse('<%- JSON.stringify(playlist) %>');
+    let playlist = JSON.parse('<%- JSON.stringify(playlist) %>');
     // Utilisation de la variable playlist en JavaScript
     var mainURL = "http://localhost:3000/";
     const videoPlayer = document.getElementById('videoPlayer');
     let currentVideoIndex = 0;
+    //let playlistes =[];
+    //playlistes = playlist;
+    //console.log('Réponse:', playlistes);
      // Écouter la réponse du serveur
      socket.on('playlistUpdated', (response) => {
       console.log('Réponse du serveur:', response);
       playlist.push(response.video);
+      //currentVideoIndex=currentVideoIndex+1;
       //socket.emit('playlistChange', { playlist: playlist });
     });
+   
+    socket.on('videoDeleted', (response) => {
+      let videoId = response._id;
+      //currentVideoIndex=currentVideoIndex-1;
+      playlist = playlist.filter(videoe => videoe._id !== videoId);
+          // Mettre à jour le lecteur vidéo si la vidéo en cours est supprimée
+    if (playlist.length === 0) {
+      videoPlayer.src = '';
+      videoPlayer.poster = '';
+      videoPlayer.removeAttribute('controls');
+      videoPlayer.load();
+    } else {
+      if (currentVideoIndex >= playlist.length) {
+        currentVideoIndex = 0;
+      }
+      // Load and play the next video
+      videoPlayer.src = playlist[currentVideoIndex].filePath;
+      videoPlayer.type = "video/mp4";
+      videoPlayer.poster = playlist[currentVideoIndex].thumbnail;
+    }
 
+    });
     // Function to load and play the video
    
-
+ 
     // Load the first video initially
     //loadAndPlayVideo(currentVideoIndex);
 
     // Add event listener for the 'ended' event on the video player
     videoPlayer.addEventListener('ended', function() {
+      //playlistes;
+      //console.log('filter end:',playlistes );
+
       // Increment the video index
+      //console.log('count end:',currentVideoIndex);
       currentVideoIndex++;
+     //console.log('filter end:',playlist );
       
       // Check if the end of the playlist is reached
       if (currentVideoIndex >= playlist.length) {
@@ -115,6 +145,8 @@ var date = createdAt.getDate() + "";
   });
 
 </script>
+
+
 
 
  
@@ -243,6 +275,19 @@ function createReplyNode(node) {
 #replies::-webkit-scrollbar-thumb:hover {
  background: #555;
 }
+
+#videoPlayer{
+  position:fixed;
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  right: auto;
+  z-index: 100;
+  object-fit: cover;
+}
+
 </style>
 
 <div id="comments">

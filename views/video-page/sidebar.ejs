@@ -21,7 +21,7 @@
                             <i class="fas fa-play-circle"></i>
                           </a>
                           <a href="<%= mainUrl %>playlist/<%= playlistId + "/" + item.watch %>">
-                            <img class="thumbnail" src="<%= item.thumbnail %>" style="width: 270px; height: 169px;">
+                            <img class="thumbnail" src="<%=mainUrl+ item.thumbnail %>" style="width: 270px; height: 169px;">
                           </a>
                           <div class="time"><%= video.minutes + ":" + video.seconds %></div>
                         </div>

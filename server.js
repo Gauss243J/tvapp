@@ -64,7 +64,7 @@ function getUser(userId, callBack) {
 	});
 }
 
-http.listen(3000, function () {
+http.listen(process.env.PORT, function () {
 	console.log("Server started at http://localhost:3000/");
 	const io = socketIo(http);
 
@@ -74,7 +74,9 @@ http.listen(3000, function () {
 			console.log('User disconnected');
 		});
 	});
-	mongoClient.connect("mongodb+srv://knkjoseph:u2Ukq0BL0oQ8pg55@cluster0.pj4mlen.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", 
+
+	
+	mongoClient.connect(process.env.DB, 
 	{
 		useNewUrlParser: true,
 		useUnifiedTopology: true
@@ -359,7 +361,6 @@ http.listen(3000, function () {
 				});
 			}
 		});
-
 
 		app.post("/upload-video", function (request, result) {
 			if (request.session.user_id) {
@@ -785,6 +786,28 @@ http.listen(3000, function () {
 			}
 		});
 
+
+		app.get("/my_channels", function (request, result) {
+			if (request.session.user_id) {
+				database.collection("users").findOne({
+					"_id": ObjectId(request.session.user_id)
+				}, function (error1, user) {
+					result.render("channel-admin", {
+						"isLogin": true,
+						"user": user,
+						"headerClass": "single-channel-page",
+						"footerClass": "ml-0",
+						"isMyChannel": true,
+						"message": request.query.message ? request.query.message : "",
+						"error": request.query.error ? request.query.error : "",
+						"url": request.url
+					});
+				});
+			} else {
+				result.redirect("/login");
+			}
+		});
+
 		app.get("/edit", function (request, result) {
 			if (request.session.user_id) {
 				database.collection("videos").findOne({
@@ -1069,7 +1092,27 @@ http.listen(3000, function () {
 						database.collection("videos").findOne({
 							"_id": ObjectId(video._id)
 						}, function (error3, videoData) {
-							fileSystem.unlink(videoData.filePath, function (errorUnlink) {
+
+					    // Supprimer la vidéo de Cloudinary
+					    cloudinary.uploader.destroy(videoData.filePath, function (error, result) {
+								if (error) {
+									console.log(error);
+									return result.render("500", {
+									 "isLogin": true,
+									 "message": "An error occurred while deleting the video."
+								});}
+
+								database.collection("videos").remove({
+									$and: [{
+										"_id": ObjectId(video._id)
+									}, {
+										"user._id": ObjectId(request.session.user_id)
+									}]
+								});
+							});
+						
+
+							/*fileSystem.unlink(videoData.filePath, function (errorUnlink) {
 								if (errorUnlink) {
 									console.log(errorUnlink);
 								}
@@ -1081,72 +1124,39 @@ http.listen(3000, function () {
 										"user._id": ObjectId(request.session.user_id)
 									}]
 								});
-							});
+							});*/
 						});
 
-						database.collection("users").findOneAndUpdate({
-							"_id": ObjectId(request.session.user_id)
-						}, {
-							$pull: {
-								"videos": {
-									"_id": ObjectId(video._id)
-								}
-							}
-						}, function (error2, data) {
-							result.redirect("/my_videos?message=Video+has+been+deleted");
-						});
-
-
-						/*database.collection("users").findOneAndUpdate({
-							"_id": ObjectId(request.session.user_id)
-						}, {
-							$pull: {
-								"videos": {
-									"_id": ObjectId(video._id)
-								}
-							}
-						}, function (error2, data) {
-							result.redirect("/my_videos?message=Video+has+been+deleted");
-						});*/
-
-						database.collection("users").updateMany({},{
-							$pull:{
-								"history":{
-									"videoId":request.body._id.toString()
-								}
-							}
-						});
-						getUser(request.session.user_id, function(user){
-							var playlistId="";
-							for(var a=0; a<user.playlists.length; a++){
-								for(var b=0; b<user.playlists[a].videos.length; b++){
-									var video = user.playlists[a].videos[b];
-									if(video._id==request.body._id){
-										playlistId=user.playlists[a]._id;
-										break;
+							database.collection("users").updateOne(
+								{
+									"_id": ObjectId(request.session.user_id),
+									"playlists.videos._id": (video._id).toString().replace(/^"|"$/g, '') // Vérification supplémentaire de l'existence
+								},
+								{
+									$pull: {
+										"playlists.$[].videos": { "_id": (video._id).toString().replace(/^"|"$/g, '') }
 									}
+								},
+								function (error2, data) {
+																	// Emit the Socket.IO event to notify clients of the update
+							io.emit('videoDeleted', { _id: video._id });
+															
+						    console.log("Vidéo retirée de la playlist avec succès:", video._id);
+
+									}
+							);
+
+						database.collection("users").updateOne({
+							"_id": ObjectId(request.session.user_id)
+						}, {
+							$pull: {
+								"videos": {
+									"_id": ObjectId(video._id)
 								}
 							}
-
-							if(playlistId != ""){
-								database.collection("users").updateOne({
-									$and:[{
-										"_id":ObjectId(request.session.user_id)
-									},
-									{
-										"playlists._id":ObjectId(playlistId)
-									}]
-									},{
-										$pull:{
-											"playlists.$.videos":{
-												"_id":request.body._id
-											}
-										}
-									
-								})
-							}
-						})
-						result.redirect("/my_channel/"+request.session.user_id);
+						}, function (error2, data) {
+							result.redirect("/my_channel");
+						});
 					}
 				});
 			} else {
@@ -1175,7 +1185,7 @@ http.listen(3000, function () {
 							}
 						}
 				});
-				result.redirect("/channel/")
+				result.redirect("/my_channel")
 			} else {
 				result.redirect("/login")
 			}
@@ -1302,6 +1312,58 @@ http.listen(3000, function () {
 			}
 		});
 	});
+
+	app.get("/playlists/:_id/:watch", function(request, result){ 
+		database.collection("videos").findOne({
+			$and:[{
+				"watch": parseInt(request.params.watch)
+			},{
+				"playlist": request.params._id
+			}]
+		}, function (error, video){
+	
+			if(video==null){
+			//result.send("Video does not exist.");
+			result.render("404", {
+				"isLogin": request.session.user_id ? true : false,
+				"message": "Video does not exist.",
+				"url": request.url
+			});
+		} else {
+			database.collection("videos").updateMany({
+				"_id":ObjectId(video._id)
+			},{
+				$inc: {
+					"views": 1
+				}
+			});
+
+			getUser(video.user._id, function(user){
+				var playlistVideos = [];
+				for (var a=0; a<user.playlists.length; a++){
+					if(user.playlists[a]._id == request.params._id){
+						playlistVideos=user.playlists[a].videos;
+						break;
+					}
+				}
+
+					result.render("video-page/index-admin", {
+						"isLogin": request.session.user_id ? true : false,
+						"video": video,
+						"user": user,
+						"url":  "localhost:3000/",//"watch?v="+ video.watch
+						"playlist": playlistVideos,
+						"playlistId": request.params._id
+					});
+
+					//console.log(video);
+					//console.log(playlistVideos);
+					/*console.log(request.params._id);*/
+		});
+		}
+	});
+});
+
 
 	}); // end of Mongo DB
 }); //  end of HTTP.listen
