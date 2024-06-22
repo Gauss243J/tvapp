@@ -1,41 +1,38 @@
 <div class="col-md-12">
-    <% mainUrl = "http://localhost:3000/" %>
+  <% mainUrl = "http://localhost:3000/" %>
   
-    <% if (playlist.length > 0) { %>
-      <div class="card my-6">
-        <h5 class="card-header">Playlist</h5>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-lg-12">
-              <input type="hidden" id="playlistId" value="<%= playlistId %>">
-              <ul class="list-unstyled mb-0" id="playlist">
-                <% playlist.forEach(function (item) { %>
-                  <% if (item.watch == video.watch) { %>
-                    <li style="background: lightgray;">
-                  <% } else { %>
-                    <li>
-                  <% } %>
-                      <div class="video-card">
-                        <div class="video-card-image">
-                          <a class="play-icon" href="<%= mainUrl %>playlist/<%= playlistId + "/" + item.watch %>">
-                            <i class="fas fa-play-circle"></i>
-                          </a>
-                          <a href="<%= mainUrl %>playlist/<%= playlistId + "/" + item.watch %>">
-                            <img class="thumbnail" src="<%=mainUrl+ item.thumbnail %>" style="width: 270px; height: 169px;">
-                          </a>
-                          <div class="time"><%= video.minutes + ":" + video.seconds %></div>
-                        </div>
+  <% if (playlist.length > 0) { %>
+    <div class="card my-6">
+      <h5 class="card-header">Playlist</h5>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-lg-12">
+            <input type="hidden" id="playlistId" value="<%= playlistId %>">
+            <ul class="list-unstyled mb-0" id="playlist">
+              <% playlist.forEach(function (item) { %>
+                <% if (item.watch == video.watch) { %>
+                  <li style="background: lightgray;">
+                <% } else { %>
+                  <li>
+                <% } %>
+                    <div class="video-card">
+                      <div class="video-card-image">
+                        <a class="play-icon" href="<%= mainUrl + 'playlists/' + playlistId + '/' + item.watch %>">
+                          <i class="fas fa-play-circle"></i>
+                        </a>
+                        <a href="<%= mainUrl + 'playlists/' + playlistId + '/' + item.watch %>">
+                          <img class="thumbnail" src="<%= item.thumbnail %>" style="width: 270px; height: 169px;">
+                        </a>
+                        <div class="time"><%= item.minutes + ':' + item.seconds %></div>
                       </div>
-                      <br>
-                    </li>
-                <% }) %>
-              </ul>
-            </div>
+                    </div>
+                    <br>
+                  </li>
+              <% }) %>
+            </ul>
           </div>
         </div>
       </div>
-    <% } %>
-  </div>
-  
-
-
+    </div>
+  <% } %>
+</div>

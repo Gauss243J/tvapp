@@ -33,6 +33,7 @@ var nodemailer = require("nodemailer");
 
 var mainURL = "http://localhost:3000";
 
+
 app.use(bodyParser.json( { limit: "10000mb" } ));
 app.use(bodyParser.urlencoded( { extended: true, limit: "10000mb", parameterLimit: 1000000 } ));
 
@@ -47,6 +48,37 @@ app.use(expressSession({
 
 app.use("/public", express.static(__dirname + "/public"));
 app.set("view engine", "ejs");
+
+
+// Routes pour simuler les erreurs
+app.get('/exemple-timeout', (req, res, next) => {
+    setTimeout(() => {
+        let err = new Error('Timeout de la requête');
+        err.code = 'ECONNABORTED';
+        next(err);
+    }, 10000); // Timeout de 10 secondes
+});
+
+app.get('/exemple-connexion', (req, res, next) => {
+    let err = new Error('Connexion internet non disponible');
+    err.code = 'ENOTFOUND';
+    next(err);
+});
+
+// Middleware pour gérer les erreurs
+app.use((err, req, res, next) => {
+    if (err.code === 'ECONNABORTED') {
+        res.status(504).render('error', { message: "Timeout: La requête a expiré" });
+    } else if (err.code === 'ENOTFOUND') {
+        res.status(503).render('error', { message: "Service non disponible: Vérifiez votre connexion internet" });
+    } else {
+        console.error(err.stack);
+        res.status(500).render('error', { message: "Une erreur est survenue sur le serveur" });
+    }
+});
+
+
+
 
 var database = null;
 
