@@ -1,5 +1,5 @@
 // public/service-worker.js
-const CACHE_NAME = 'offline-cache-v1';
+/*const CACHE_NAME = 'offline-cache-v1';
 const OFFLINE_URL = '/offline.html';
 
 // Liste des URL spécifiques qui doivent être traitées avec une stratégie network-first
@@ -66,11 +66,11 @@ self.addEventListener('fetch', event => {
         );
     }
 });
+*/
 
 
 
-
-/*const CACHE_NAME = 'offline-cache';
+const CACHE_NAME = 'offline-cache';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', event => {
@@ -94,4 +94,3 @@ self.addEventListener('fetch', event => {
         );
     }
 });
-*/
