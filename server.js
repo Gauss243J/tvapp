@@ -1345,6 +1345,55 @@ http.listen(process.env.PORT, function () {
 		});
 	});
 
+
+app.get("/playlistes/:_id/:watch", function(request, result){ 
+			database.collection("videos").findOne({
+				$and:[{
+					"watch": parseInt(request.params.watch)
+				},{
+					"playlist": request.params._id
+				}]
+			}, function (error, video){
+		
+				if(video==null){
+				//result.send("Video does not exist.");
+				result.render("404", {
+					"isLogin": request.session.user_id ? true : false,
+					"message": "Video does not exist.",
+					"url": request.url
+				});
+			} else {
+				database.collection("videos").updateMany({
+					"_id":ObjectId(video._id)
+				},{
+					$inc: {
+						"views": 1
+					}
+				});
+
+				getUser(video.user._id, function(user){
+					var playlistVideos = [];
+					var playlistLinks = [];
+					for (var a=0; a<user.playlists.length; a++){
+						if(user.playlists[a]._id == request.params._id){
+							playlistVideos=user.playlists[a].videos;
+							for (var b=0; b<user.playlists[a].videos.length; b++){
+							playlistLinks=user.playlists[a].videos[b].filePath;
+							}
+							break;
+						}
+					}
+
+				res.json(playlistLinks);
+			});
+			}
+		});
+	});
+
+
+
+		
+
 	app.get("/playlists/:_id/:watch", function(request, result){ 
 		database.collection("videos").findOne({
 			$and:[{
