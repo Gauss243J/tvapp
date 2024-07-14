@@ -1378,7 +1378,7 @@ app.get("/playlistes/:_id/:watch", function(request, result){
 						if(user.playlists[a]._id == request.params._id){
 							playlistVideos=user.playlists[a].videos;
 							for (var b=0; b<user.playlists[a].videos.length; b++){
-							playlistLinks=user.playlists[a].videos[b].filePath;
+							playlistLinks.push(user.playlists[a].videos[b].filePath);
 							}
 							break;
 						}
