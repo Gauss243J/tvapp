@@ -1384,7 +1384,7 @@ app.get("/playlistes/:_id/:watch", function(request, result){
 						}
 					}
 
-				res.json(playlistLinks);
+				result.json(playlistLinks);
 			});
 			}
 		});
