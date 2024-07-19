@@ -1374,12 +1374,18 @@ app.get("/playlistes/:_id/:watch", function(request, result){
 				getUser(video.user._id, function(user){
 					var playlistVideos = [];
 					var playlistLinks = [];
+					  const regex = /\/([^/]*)$/;
+					  //const match = url.match(regex);
+					  //if (match) return match[1];
+					  //else return null;
+					  
 					for (var a=0; a<user.playlists.length; a++){
 						if(user.playlists[a]._id == request.params._id){
 							playlistVideos=user.playlists[a].videos;
 							for (var b=0; b<user.playlists[a].videos.length; b++){
 							playlistLinks.push(
-								{ url: user.playlists[a].videos[b].filePath, filename: user.playlists[a].videos[b].title }
+								{ url: user.playlists[a].videos[b].filePath, 
+								 filename: ((user.playlists[a].videos[b].filePath).match(regex))[1] }
 								);
 							}
 							break;
